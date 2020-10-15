@@ -6,7 +6,10 @@ const cors = require('cors')
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 
-const config = require("./config/key");
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
+
+const config = require("./config/key"); 
 
 // const mongoose = require("mongoose");
 // mongoose
@@ -34,6 +37,10 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 app.use('/api/users', require('./routes/users'));
+
+io.on('connection', socket => {
+  
+})
 
 
 //use this to show the image you have in node js server to client (react js)
