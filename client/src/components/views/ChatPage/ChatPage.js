@@ -14,6 +14,10 @@ class ChatPage extends Component {
         let server = "http://localhost:5000"
 
         this.socket = io(server);
+
+        this.socket.on("Output Chat Message", msg => {
+            console.log(msg)
+        })
     }
 
     handleMessageChange = (e) => {

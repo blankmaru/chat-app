@@ -17,6 +17,8 @@ const config = require("./config/key");
 //   .then(() => console.log("DB connected"))
 //   .catch(err => console.error(err));
 
+const { Chat } = require('./models/Chat');
+
 const mongoose = require("mongoose");
 const connect = mongoose.connect(config.mongoURI,
   {
@@ -39,7 +41,25 @@ app.use(cookieParser());
 app.use('/api/users', require('./routes/users'));
 
 io.on('connection', socket => {
-  
+  socket.on('Input Chat Message', msg => {
+    connect.then(db => {
+      try {
+        let chat = new Chat({ message: msg.message, sender: msg.userId })
+        
+        chat.save((err, doc) => {
+          if (err) return res.json({ success: false, err })
+
+          Chat.find({ "_id": doc._id })
+          .populate("sender")
+          .exec((err, doc) => {
+            return io.emit("Output Chat Message", doc);
+          })
+        })
+      } catch (error) {
+        
+      }
+    })
+  })
 })
 
 
@@ -62,6 +82,6 @@ if (process.env.NODE_ENV === "production") {
 
 const port = process.env.PORT || 5000
 
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Server Listening on ${port}`)
 });
