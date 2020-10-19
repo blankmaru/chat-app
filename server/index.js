@@ -39,12 +39,13 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 app.use('/api/users', require('./routes/users'));
+app.use('/api/chat', require('./routes/chat'));
 
 io.on('connection', socket => {
   socket.on('Input Chat Message', msg => {
     connect.then(db => {
       try {
-        let chat = new Chat({ message: msg.message, sender: msg.userId })
+        let chat = new Chat({ message: msg.message, sender: msg.userId, type: msg.type })
         
         chat.save((err, doc) => {
           if (err) return res.json({ success: false, err })

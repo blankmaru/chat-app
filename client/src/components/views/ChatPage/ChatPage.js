@@ -3,6 +3,8 @@ import { Form, Icon, Input, Button, Row, Col } from 'antd'
 import io from 'socket.io-client'
 import { connect } from 'react-redux'
 import moment from 'moment'
+import { getChats, afterPostMessage } from '../../../_actions/chat_actions'
+import ChatCard from './ChatCard'
 
 class ChatPage extends Component {
 
@@ -15,9 +17,15 @@ class ChatPage extends Component {
 
         this.socket = io(server);
 
+        this.props.dispatch(getChats());
+
         this.socket.on("Output Chat Message", msg => {
-            console.log(msg)
+            this.props.dispatch(afterPostMessage(msg));
         })
+    }
+
+    componentDidUpdate() {
+        this.messagesEnd.scrollIntoView({ behavior: 'smooth' })
     }
 
     handleMessageChange = (e) => {
@@ -33,16 +41,24 @@ class ChatPage extends Component {
         let userId = this.props.user.userData._id;
         let userName = this.props.user.userData.name;
         let time = moment();
+        let type = "Text"
 
         this.socket.emit('Input Chat Message', {
             message,
             userId,
             userName,
-            time
+            time,
+            type
         })
 
         this.setState({ chatMessage: "" })
     }
+
+    renderChats = () =>
+        this.props.chats.chats
+        && this.props.chats.chats.map((chat) => (
+            <ChatCard key={chat._id}  {...chat} />
+        ));
 
     render() {
         return (
@@ -52,7 +68,10 @@ class ChatPage extends Component {
                 </div>
 
                 <div style={{maxWidth: '800px', margin: '0 auto'}}>
-                    <div className="infinite-container">
+                    <div className="infinite-container" style={{ height: '500px', overflowY: 'scroll' }}>
+                        {this.props.chats && (
+                            <div>{this.renderChats()}</div>
+                        )}
                         <div 
                             ref={el => {
                                 this.messagesEnd = el;
@@ -92,7 +111,8 @@ class ChatPage extends Component {
 
 const mapStateToProps = state => {
     return {
-        user: state.user
+        user: state.user,
+        chats: state.chat
     }
 }
 
