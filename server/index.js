@@ -18,6 +18,7 @@ const config = require("./config/key");
 //   .catch(err => console.error(err));
 
 const { Chat } = require('./models/Chat');
+const { auth } = require("./middleware/auth");
 
 const mongoose = require("mongoose");
 const connect = mongoose.connect(config.mongoURI,
@@ -40,6 +41,29 @@ app.use(cookieParser());
 
 app.use('/api/users', require('./routes/users'));
 app.use('/api/chat', require('./routes/chat'));
+
+const multer = require("multer");
+const fs = require("fs");
+
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/')
+  },
+  filename: function (req, file, cb) {
+    cb(null, `${Date.now()}_${file.originalname}`)
+  }
+})
+ 
+var upload = multer({ storage: storage }).single("file")
+
+app.post("/api/chat/uploadfiles", auth ,(req, res) => {
+  upload(req, res, err => {
+    if(err) {
+      return res.json({ success: false, err })
+    }
+    return res.json({ success: true, url: res.req.file.path });
+  })
+});
 
 io.on('connection', socket => {
   socket.on('Input Chat Message', msg => {

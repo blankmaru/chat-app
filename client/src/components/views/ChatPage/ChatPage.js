@@ -5,6 +5,8 @@ import { connect } from 'react-redux'
 import moment from 'moment'
 import { getChats, afterPostMessage } from '../../../_actions/chat_actions'
 import ChatCard from './ChatCard'
+import Dropzone from 'react-dropzone'
+import axios from 'axios'
 
 class ChatPage extends Component {
 
@@ -60,6 +62,36 @@ class ChatPage extends Component {
             <ChatCard key={chat._id}  {...chat} />
         ));
 
+    onDrop = (files) => {
+        console.log(files)
+        let formData = new FormData
+
+        let config = {
+            header: { 'content-type': 'multipart/form-data' }
+        }
+
+        formData.append('file', files[0])
+
+        axios.post('api/chat/uploadfiles', formData, config)
+            .then(res => {
+                if (res.data.success) {
+                    let message = res.data.url;
+                    let userId = this.props.user.userData._id;
+                    let userName = this.props.user.userData.name;
+                    let time = moment();
+                    let type = "VideoOrImage";
+
+                    this.socket.emit('Input Chat Message', {
+                        message,
+                        userId,
+                        userName,
+                        time,
+                        type
+                    })
+                }
+            })
+    }
+
     render() {
         return (
             <React.Fragment>
@@ -93,7 +125,18 @@ class ChatPage extends Component {
                                 />
                             </Col>
                             <Col span={2}>
-
+                            <Dropzone onDrop={this.onDrop}>
+                                {({getRootProps, getInputProps}) => (
+                                    <section>
+                                        <div {...getRootProps()}>
+                                            <input {...getInputProps()} />
+                                            <Button>
+                                                <Icon type="upload" />
+                                            </Button>
+                                        </div>
+                                    </section>
+                                )}
+                            </Dropzone>
                             </Col>
                             <Col span={4}>
                                 <Button type="primary" onClick={this.submit} style={{width: '100%'}} htmlType="submit">

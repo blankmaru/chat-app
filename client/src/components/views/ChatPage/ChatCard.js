@@ -1,16 +1,32 @@
-import React from 'react'
-import moment from 'moment'
-import { Comment, Tooltip } from 'antd'
+import React from "react";
+import moment from 'moment';
+import { Comment, Tooltip } from 'antd';
 
 function ChatCard(props) {
     return (
         <div style={{ width: '100%' }}>
-            <Comment 
+            <Comment
                 author={props.sender.name}
                 content={
-                    <p>
-                        {props.message}
-                    </p>
+                    props.message.substring(0, 7) === "uploads" ?
+                        // this will be either video or image 
+
+                        props.message.substring(props.message.length - 3, props.message.length) === 'mp4' ?
+                            <video
+                                style={{ maxWidth: '200px' }}
+                                src={`http://localhost:5000/${props.message}`} alt="video"
+                                type="video/mp4" controls
+                            />
+                            :
+                            <img
+                                style={{ maxWidth: '200px' }}
+                                src={`http://localhost:5000/${props.message}`}
+                                alt="img"
+                            />
+                        :
+                        <p>
+                            {props.message}
+                        </p>
                 }
                 datetime={
                     <Tooltip title={moment().format('YYYY-MM-DD HH:mm:ss')}>
@@ -22,4 +38,4 @@ function ChatCard(props) {
     )
 }
 
-export default ChatCard
+export default ChatCard;
